@@ -1,0 +1,62 @@
+{
+  "name": "dudewheresmyparking-api",
+  "version": "0.0.0",
+  "private": true,
+  "author": "Leo Brdar",
+  "license": "MIT",
+  "main": "build/index.js",
+  "engines": {
+    "node": "6.10.3",
+    "npm": ">=3.10.0"
+  },
+  "scripts": {
+    "prestart": "npm run build",
+    "start": "node build/index.js",
+    "clean": "rimraf build",
+    "build": "npm run clean && mkdir build && babel src -s -D -d build",
+    "lint": "eslint --ignore-path .gitignore src"
+  },
+  "dependencies": {
+    "babel-cli": "6.24.1",
+    "babel-preset-env": "1.3.3",
+    "body-parser": "1.13.2",
+    "cors": "2.8.1",
+    "express": "4.13.1",
+    "knex": "0.12.7",
+    "morgan": "1.6.1",
+    "mysql": "2.13.0",
+    "rimraf": "2.6.1"
+  },
+  "devDependencies": {
+    "babel-register": "6.18.0",
+    "eslint": "3.16.1",
+    "eslint-plugin-import": "2.2.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "eslintConfig": {
+    "plugins": [
+      "import"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    },
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ]
+  }
+}
