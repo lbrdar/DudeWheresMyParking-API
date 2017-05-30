@@ -13,4 +13,4 @@ export default function validateParkingSpot(parkingSpot) {
     validation.valid = false;
     validation.errors.push('Parking spot coordinates are required');
   }
-};
+}

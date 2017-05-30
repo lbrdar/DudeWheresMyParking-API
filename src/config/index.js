@@ -1,4 +1,4 @@
-import knexfile from '../knexfile';
+import knexfile from './knexfile';
 
 const config = {
   env: process.env.NODE_ENV || 'development',
