@@ -1,25 +1,53 @@
 import express from 'express';
+import bcrypt from 'bcrypt-nodejs';
 import database from '../data/database';
-import { validateParkingSpot, geoLocationUtils } from '../utils';
+import { validateRegisterInput, validateLoginInput, validateParkingSpot, geoLocationUtils } from '../utils';
 
 const router = express.Router();
 
-router.get('/', function(req, res) {
+router.get('/', function (req, res) {
   res.send('REST API ready');
 });
 
-router.get('/parking_types', async function(req, res) {
+router.post('/register', async function (req, res) {
+  const validation = validateRegisterInput(req.body);
+
+  if (!validation.valid) res.status(400).send(validation.errors);
+
+  const passwordHash = bcrypt.hashSync(req.body.password);
+
+  await database('user')
+    .insert({ username: req.body.username, password_hash: passwordHash })
+    .then(data => res.status(201).send(data))
+    .catch(err => res.status(500).send(err));
+});
+router.post('/login', async function (req, res) {
+  const validation = validateLoginInput(req.body);
+
+  if (!validation.valid) res.status(400).send(validation.errors);
+
+  const user = await database('user').where('id', req.body.userId).then(res => res[0]);
+
+  if (user && bcrypt.compareSync(req.body.password, user.password_hash)) {
+    res.send(200);
+  } else {
+    res.send(401);
+  }
+});
+
+
+router.get('/parking_types', async function (req, res) {
   const selected = await database('parking_type')
     .then(res => res);
   res.send(selected);
 });
-router.get('/parking_taken_for_slots', async function(req, res) {
+router.get('/parking_taken_for_slots', async function (req, res) {
   const selected = await database('parking_taken_for_slot')
     .then(res => res);
   res.send(selected);
 });
 
-router.get('/parking_spots', async function(req, res) {
+router.get('/parking_spots', async function (req, res) {
   const selected = await database('parking_spot')
     .select('parking_spot.id as id', 'latitude', 'longitude')
     .leftJoin('parking_type', 'parking_spot.type_id', 'parking_type.id')
@@ -27,7 +55,7 @@ router.get('/parking_spots', async function(req, res) {
     .then(res => res);
   res.send(selected);
 });
-router.post('/parking_spots', async function(req, res) {
+router.post('/parking_spots', async function (req, res) {
   const validation = validateParkingSpot(req.body);
 
   if (!validation.valid) res.status(400).send(validation.errors);
@@ -38,7 +66,7 @@ router.post('/parking_spots', async function(req, res) {
     .catch(err => res.status(500).send(err));
 });
 
-router.get('/parking_spots/near', async function(req, res) {
+router.get('/parking_spots/near', async function (req, res) {
   const { radius, latitude, longitude } = req.query;
 
   if ((radius === undefined) || (latitude === undefined) || (longitude === undefined)) {
@@ -60,7 +88,7 @@ router.get('/parking_spots/near', async function(req, res) {
   }
 });
 
-router.get('/parking_spots/:id', async function(req, res) {
+router.get('/parking_spots/:id', async function (req, res) {
   const selected = await database('parking_spot')
     .select('parking_type.label as type', 'latitude', 'longitude', 'costPerHour as cost', 'parking_taken_for_slot.duration as takenFor', 'taken')
     .leftJoin('parking_type', 'parking_spot.type_id', 'parking_type.id')

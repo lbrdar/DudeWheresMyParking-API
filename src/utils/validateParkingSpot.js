@@ -5,6 +5,8 @@ export default function validateParkingSpot(parkingSpot) {
     errors: []
   };
 
+  // FIXME: protect from sql injection
+
   if (parkingSpot.type_id === undefined) {
     validation.valid = false;
     validation.errors.push('Parking spot type must be defined');
