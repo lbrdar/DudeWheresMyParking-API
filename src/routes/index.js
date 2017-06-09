@@ -1,5 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt-nodejs';
+import moment from 'moment';
 import database from '../data/database';
 import { validateRegisterInput, validateLoginInput, validateParkingSpot, geoLocationUtils } from '../utils';
 
@@ -93,9 +94,11 @@ router.get('/parking_spots/near', async function (req, res) {
       .then(res => res);
 
     // filter selected using radius and latLng
+    // also filter out those which are taken at the moment
     const filtered = selected.filter((parkingSpot) => {
-      const distance = geoLocationUtils.distanceFromDegree(parkingSpot, { latitude, longitude });
-      return (distance <= radius);
+      const distance = geoLocationUtils.distanceFromDegree(parkingSpot, { latitude, longitude }); // in km
+      const isTakenNow = parkingSpot.taken && (moment(parkingSpot.taken).add(parkingSpot.takenFor, 'seconds') > moment());
+      return (distance * 1000 <= radius) && !isTakenNow;
     });
 
     res.send(filtered);
