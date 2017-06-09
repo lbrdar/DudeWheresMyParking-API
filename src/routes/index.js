@@ -49,8 +49,7 @@ router.get('/parking_taken_for_slots', async function (req, res) {
 
 router.get('/parking_spots', async function (req, res) {
   const selected = await database('parking_spot')
-    .select('parking_spot.id as id', 'latitude', 'longitude')
-    .leftJoin('parking_type', 'parking_spot.type_id', 'parking_type.id')
+    .select('parking_spot.id as id', 'latitude', 'longitude', 'created', 'taken', 'parking_taken_for_slot.duration as takenFor')
     .leftJoin('parking_taken_for_slot', 'parking_spot.takenFor_id', 'parking_taken_for_slot.id')
     .then(res => res);
   res.send(selected);
@@ -73,8 +72,7 @@ router.get('/parking_spots/near', async function (req, res) {
     res.status(400).send({ error: "Request must specify latitude, longitude and radius!" });
   } else {
     const selected = await database('parking_spot')   // TODO: try using some prefiltering method to avoid selecting all (ideas: by country, by latLng +/-10 )
-      .select('parking_spot.id as id', 'latitude', 'longitude')
-      .leftJoin('parking_type', 'parking_spot.type_id', 'parking_type.id')
+      .select('parking_spot.id as id', 'latitude', 'longitude', 'created', 'taken', 'parking_taken_for_slot.duration as takenFor')
       .leftJoin('parking_taken_for_slot', 'parking_spot.takenFor_id', 'parking_taken_for_slot.id')
       .then(res => res);
 
@@ -90,7 +88,7 @@ router.get('/parking_spots/near', async function (req, res) {
 
 router.get('/parking_spots/:id', async function (req, res) {
   const selected = await database('parking_spot')
-    .select('parking_type.label as type', 'latitude', 'longitude', 'costPerHour as cost', 'parking_taken_for_slot.duration as takenFor', 'taken')
+    .select('parking_type.label as type', 'latitude', 'longitude', 'costPerHour as cost', 'parking_taken_for_slot.duration as takenFor', 'taken', 'created')
     .leftJoin('parking_type', 'parking_spot.type_id', 'parking_type.id')
     .leftJoin('parking_taken_for_slot', 'parking_spot.takenFor_id', 'parking_taken_for_slot.id')
     .where('parking_spot.id', req.params.id)
