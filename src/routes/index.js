@@ -35,6 +35,22 @@ router.post('/login', async function (req, res) {
   }
 });
 
+router.get('/users/:id', async function (req, res) {
+  const selected = await database('user')
+    .select('username', 'points')
+    .where('id', req.params.id)
+    .then(res => res[0]);
+  res.send(selected);
+});
+router.put('/users/:id', async function (req, res) {
+  const selected = await database('user')
+    .where('id', req.params.id)
+    .update({ username: req.body.username })
+    .then(res => res[0]);
+
+  res.send(selected);
+});
+
 
 router.get('/parking_types', async function (req, res) {
   const selected = await database('parking_type')
