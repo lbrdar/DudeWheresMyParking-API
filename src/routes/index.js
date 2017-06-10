@@ -72,12 +72,12 @@ router.get('/parking_spots', async function (req, res) {
   res.send(selected);
 });
 router.post('/parking_spots', async function (req, res) {
-  const validation = validateParkingSpot(req.body);
+  const validation = validateParkingSpot(req.body.parkingSpot);
 
   if (!validation.valid) res.status(400).send(validation.errors);
 
   await database('parking_spot')
-    .insert(req.body)
+    .insert(Object.assign({}, req.body.parkingSpot, { creator_id: req.body.userId }))
     .then(data => res.status(201).send(data))
     .catch(err => res.status(500).send(err));
 });
@@ -97,7 +97,7 @@ router.get('/parking_spots/near', async function (req, res) {
     // also filter out those which are taken at the moment
     const filtered = selected.filter((parkingSpot) => {
       const distance = geoLocationUtils.distanceFromDegree(parkingSpot, { latitude, longitude }); // in km
-      const isTakenNow = parkingSpot.taken && (moment(parkingSpot.taken).add(parkingSpot.takenFor, 'seconds') > moment());
+      const isTakenNow = parkingSpot.taken && ( (parkingSpot.takenFor === null) || (moment(parkingSpot.taken).add(parkingSpot.takenFor, 'seconds') > moment()) );
       return (distance * 1000 <= radius) && !isTakenNow;
     });
 
@@ -107,11 +107,20 @@ router.get('/parking_spots/near', async function (req, res) {
 
 router.get('/parking_spots/:id', async function (req, res) {
   const selected = await database('parking_spot')
-    .select('parking_type.label as type', 'latitude', 'longitude', 'costPerHour as cost', 'parking_taken_for_slot.duration as takenFor', 'taken', 'created')
+    .select('parking_spot.id as id', 'parking_type.label as type', 'latitude', 'longitude', 'costPerHour as cost', 'parking_taken_for_slot.duration as takenFor', 'taken', 'created')
     .leftJoin('parking_type', 'parking_spot.type_id', 'parking_type.id')
     .leftJoin('parking_taken_for_slot', 'parking_spot.takenFor_id', 'parking_taken_for_slot.id')
     .where('parking_spot.id', req.params.id)
     .then(res => res);
+  res.send(selected);
+});
+router.put('/parking_spots/:id', async function (req, res) {
+  const selected = await database('parking_spot')
+    .where('id', req.params.id)
+    .update({ taken: database.raw('CURRENT_TIMESTAMP()'), takenBy_id: req.body.userId, takenFor_id: req.body.takenFor_id })
+    .then(res => res[0]);
+
+  // TODO: update creator's points
   res.send(selected);
 });
 
