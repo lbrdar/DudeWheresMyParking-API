@@ -120,7 +120,15 @@ router.put('/parking_spots/:id', async function (req, res) {
     .update({ taken: database.raw('CURRENT_TIMESTAMP()'), takenBy_id: req.body.userId, takenFor_id: req.body.takenFor_id })
     .then(res => res[0]);
 
-  // TODO: update creator's points
+  // update creator's points
+  const creator = await database('parking_spot')
+    .select('creator_id as id')
+    .where('id', req.params.id)
+    .then(res => res[0]);
+  if (creator.id !== req.body.userId) { // don't add points if user took parking that he added
+    await database('user').where('id', creator.id).increment('points', 5);
+  }
+
   res.send(selected);
 });
 
