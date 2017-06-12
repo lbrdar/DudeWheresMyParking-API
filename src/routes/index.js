@@ -71,7 +71,7 @@ router.post('/user_addresses/:userId', async function (req, res) {
     .then(async (insertedId) => {
       await database('user_address')
         .insert({ label, user_id: req.params.userId, address_id: insertedId })
-        .then(() => res.status(201));
+        .then(() => res.sendStatus(201));
     })
     .catch(err => res.status(500).send(err));
 });
