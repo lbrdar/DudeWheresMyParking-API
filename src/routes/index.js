@@ -101,7 +101,16 @@ router.post('/parking_spots', async function (req, res) {
 
   await database('parking_spot')
     .insert(Object.assign({}, req.body.parkingSpot, { creator_id: req.body.userId }))
-    .then(data => res.status(201).send(data))
+    .then(async (ids) => {
+
+      const inserted = await database('parking_spot')
+        .select('parking_spot.id as id', 'latitude', 'longitude', 'created', 'taken', 'parking_taken_for_slot.duration as takenFor')
+        .leftJoin('parking_taken_for_slot', 'parking_spot.takenFor_id', 'parking_taken_for_slot.id')
+        .where('parking_spot.id', ids[0])
+        .then(res => res);
+
+      res.status(201).send(inserted)
+    })
     .catch(err => res.status(500).send(err));
 });
 
