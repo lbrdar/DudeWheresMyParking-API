@@ -2,7 +2,7 @@ import express from 'express';
 import bcrypt from 'bcrypt-nodejs';
 import moment from 'moment';
 import database from '../data/database';
-import { validateRegisterInput, validateLoginInput, validateParkingSpot, geoLocationUtils } from '../utils';
+import { validateAddress, validateRegisterInput, validateLoginInput, validateParkingSpot, geoLocationUtils } from '../utils';
 
 const router = express.Router();
 
@@ -52,6 +52,29 @@ router.put('/users/:id', async function (req, res) {
   res.send(selected);
 });
 
+router.get('/user_addresses/:userId', async function (req, res) {
+  const selected = await database('user_address')
+    .leftJoin('address', 'user_address.address_id', 'address.id')
+    .select('label', 'address.address as address', 'latitude', 'longitude')
+    .where('user_id', req.params.userId)
+    .then(res => res);
+  res.send(selected);
+});
+router.post('/user_addresses/:userId', async function (req, res) {
+  const validation = validateAddress(req.body);
+
+  if (!validation.valid) res.status(400).send(validation.errors);
+
+  const { label, latitude, longitude, address } = req.body;
+  await database('address')
+    .insert({ latitude, longitude, address })
+    .then(async (insertedId) => {
+      await database('user_address')
+        .insert({ label, user_id: req.params.userId, address_id: insertedId })
+        .then(() => res.status(201));
+    })
+    .catch(err => res.status(500).send(err));
+});
 
 router.get('/parking_types', async function (req, res) {
   const selected = await database('parking_type')
