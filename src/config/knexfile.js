@@ -16,11 +16,11 @@ module.exports = {
   staging: {  // FIXME: use different setup in staging
     client: 'mysql',
     connection: {
-      host: 'sql11.freemysqlhosting.net',
+      host: 'sql8.freemysqlhosting.net',
       port: 3306,
-      user: 'sql11180430',
-      password: 'sihZ1l4k8B',
-      database: 'sql11180430',
+      user: 'sql8180448',
+      password: 'cF55RVfTcq',
+      database: 'sql8180448',
       dateStrings: true,
     },
     pool: {
@@ -35,11 +35,11 @@ module.exports = {
   production: {
     client: 'mysql',
     connection: {
-      host: 'sql11.freemysqlhosting.net',
+      host: 'sql8.freemysqlhosting.net',
       port: 3306,
-      user: 'sql11180430',
-      password: 'sihZ1l4k8B',
-      database: 'sql11180430',
+      user: 'sql8180448',
+      password: 'cF55RVfTcq',
+      database: 'sql8180448',
       dateStrings: true,
     },
     pool: {
